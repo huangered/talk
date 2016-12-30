@@ -17,7 +17,9 @@
          terminate/2,
          code_change/3]).
 
--record(state, {}).
+-record(state, {
+                port=0   %% server port
+               }).
 
 %% api
 start_link(Port) ->
@@ -29,16 +31,21 @@ start() ->
 %% callback
 
 init([Port]) ->
-  {ok, #state{}}.
+  {ok, #state{port = Port}}.
 
 handle_call(_Req, _From, State) ->
     {reply, ignored, State}.
 
-handle_cast(start, State) ->
-    server(5678),
+handle_cast(start, State = #state{port = Port}) ->
+    io:format("Port from state ~p~n", [Port]),
+    server(Port),
     {noreply, State}.
 
-handle_info(_Info, State) ->
+handle_info(Msg, State = #state{port = Port}) ->
+    case Msg of
+      port -> io:format("Get port ~p~n", [ Port ]);
+      _  -> io:format("unknown~n")
+    end,
     {noreply, State}.
 
 terminate(_Reason, _State) ->
