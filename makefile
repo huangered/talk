@@ -7,3 +7,4 @@ start:
 	erl -noshell -s hello server -s init stop
 clean:
 	rm *.beam
+	rm *.erl~
