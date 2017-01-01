@@ -7,9 +7,11 @@
 
 -behaviour(gen_server).
 
+-include("record.hrl").
+
 -export([start_link/0]).
 
--export([user_login/0, user_logout/0, send_msg/3]).
+-export([handle/1]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -24,28 +26,29 @@
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-user_login()->
-    io:format("User login").
-
-user_logout() ->
-    io:format("User logout").
-
-send_msg(From, To, Msg) ->
-    io:format("Send ~p from ~p to ~p~n", [ Msg, From, To]).
+handle({Socket, Pack}) ->
+    gen_server:cast(?MODULE, {Socket, Pack}).
 
 %% callback
 
 init([]) ->
     {ok, #state{}}.
 
-handle_call({login, Sock}, _From, State) ->
-    {reply, ignored, State};
-
-handle_call({logout}, _From, State) ->
+handle_call(_Req, _From, State) ->
     {reply, ignored, State}.
 
-handle_cast({From, To, Msg}, State) ->
-    {noreply, State}.
+handle_cast({Socket, Pack = #package{len=_Len, op=Op, data=Data}}, State) ->
+    case Op of
+        connect -> 
+            user_login({Socket, Data}),
+            {noreply, State};
+        disconnect ->
+            user_logout({Data}),
+            {noreply, State};
+        talk ->
+            send_msg({Data}),
+            {noreply, State}
+    end.
 
 handle_info(_Info, State) ->
     {noreply, State}.
@@ -57,3 +60,12 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %% Internal functions
+
+user_login({_Socket, Name})->
+    io:format("User login ~p~n", [Name]).
+
+user_logout({_Name}) ->
+    io:format("User logout").
+
+send_msg({_Data}) ->
+    io:format("Send").

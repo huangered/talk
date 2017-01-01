@@ -18,6 +18,8 @@ client() ->
     ok = gen_tcp:close(Sock).
 
 server() ->
-    entry:start_link(5678),
-    entry:start().
+    talk_server:start_link(),
+    entry:start_link(12345),
+    entry:start(),
+    report().
 
