@@ -47,7 +47,7 @@ handle_cast({Socket, Pack = #package{len=_Len, op=Op, data=Data}}, State) ->
             NewState = user_logout({Data}),
             {noreply, NewState};
         talk ->
-            send_msg({Data}),
+            send_msg({Data, State}),
             {noreply, State}
     end.
 
@@ -73,5 +73,15 @@ user_logout({Name, State=#state{users=Users}}) ->
     NewState = #state{users=dict:erase(Name, Users)}.
 
 
-send_msg({_Data}) ->
-    io:format("Send").
+send_msg({Data, State=#state{users=Users}}) ->
+    io:format("Send ~p~n", [Data]),
+    case string:tokens(Data, ";") of
+        [From, To, Msg] -> seng(From, To, Msg, Users);
+        _ -> io:format("wrong~n")
+    end.
+
+send(From, To, Msg, Users) ->
+    case dict:find(To, Users) ->
+        {ok, Socket} -> gen_server:send(Socket, Msg);
+        error -> donothing
+    end.
