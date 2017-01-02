@@ -1,18 +1,6 @@
-.SUFFIXES: .erl .beam
+PROJECT = server
+PROJECT_DESCRIPTION = server
+PROJECT_VERSION = 0.1.0
+DEPS = cowboy
 
-.erl.beam:
-	erlc -W $<
-
-ERL = erl -boot start_clean
-
-MODS = hello entry handler talk_server	
-
-all: compile start
-	
-
-compile: ${MODS:%=%.beam}
-
-start:
-	erl -noshell -s hello server -s init stop
-clean:
-	rm -rf *.beam erl_crash.dump
+include erlang.mk
