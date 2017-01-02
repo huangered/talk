@@ -6,18 +6,17 @@
 %% the api to handle Sock
 %% - 6 -  op  -  data
 handle(Sock) ->
-    case gen_tcp:recv(Sock, 6) of
+    case gen_tcp:recv(Sock, 0) of
     	{ok, Bin} -> 
-      		io:format("Received ~p~n", [binary_to_list(Bin)]),
-    		{Len, _} = string:to_integer(binary_to_list(Bin)),
-    		io:format("Len: ~w~n", [Len]),
-    		{ok, OpDataBin} = gen_tcp:recv(Sock, Len),
-    		OpData = binary_to_list(OpDataBin),
+        Line = binary_to_list(Bin),
+        {Len, _ } = string:to_integer(string:substr(Line, 1, 6)),
+    		OpData = string:substr(Line, 7),
     		Index = string:str(OpData, ":"),
     		Op = string:substr(OpData, 1, Index - 1),
     		Data = string:substr(OpData, Index + 1),
-    		io:format("Op: ~p, Data: ~p~n", [Op, Data]),
-    		Pack = #package{len = Len, op = list_to_atom(Op), data = Data},
+        TrimData = string:substr(Data, 1, string:len(Data) - 2 ),
+    		Pack = #package{len = Len, op = list_to_atom(Op), data = TrimData},
+        io:format("Package ~p~n", [Pack]),
     		talk_server:handle({Sock, Pack}),
         handle(Sock);
     	{error, closed} -> 
