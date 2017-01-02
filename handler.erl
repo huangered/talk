@@ -18,7 +18,8 @@ handle(Sock) ->
     		Data = string:substr(OpData, Index + 1),
     		io:format("Op: ~p, Data: ~p~n", [Op, Data]),
     		Pack = #package{len = Len, op = list_to_atom(Op), data = Data},
-    		talk_server:handle({Sock, Pack});
+    		talk_server:handle({Sock, Pack}),
+        handle(Sock);
     	{error, closed} -> 
       		io:format("Close from ~n", []),
       		gen_tcp:close(Sock),

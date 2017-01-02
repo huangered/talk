@@ -21,7 +21,7 @@
          terminate/2,
          code_change/3]).
 
--record(state, {}).
+-record(state, {users}).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -32,7 +32,7 @@ handle({Socket, Pack}) ->
 %% callback
 
 init([]) ->
-    {ok, #state{}}.
+    {ok, #state{users=dict:new()}}.
 
 handle_call(_Req, _From, State) ->
     {reply, ignored, State}.
@@ -40,11 +40,12 @@ handle_call(_Req, _From, State) ->
 handle_cast({Socket, Pack = #package{len=_Len, op=Op, data=Data}}, State) ->
     case Op of
         connect -> 
-            user_login({Socket, Data}),
-            {noreply, State};
+            NewState = user_login({Socket, Data, State}),
+            io:format("~p~n",[NewState]),
+            {noreply, NewState};
         disconnect ->
-            user_logout({Data}),
-            {noreply, State};
+            NewState = user_logout({Data}),
+            {noreply, NewState};
         talk ->
             send_msg({Data}),
             {noreply, State}
@@ -61,11 +62,16 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internal functions
 
-user_login({_Socket, Name})->
-    io:format("User login ~p~n", [Name]).
+user_login({Socket, Name, State=#state{users=Users}})->
+    io:format("User login ~p~n", [Name]),
+    NewState = #state{users=dict:store(Name, Socket, Users)}.
 
-user_logout({_Name}) ->
-    io:format("User logout").
+    %%users:start_link(1, Name, Socket).
+
+user_logout({Name, State=#state{users=Users}}) ->
+    io:format("User logout ~p~n", [Name]),
+    NewState = #state{users=dict:erase(Name, Users)}.
+
 
 send_msg({_Data}) ->
     io:format("Send").

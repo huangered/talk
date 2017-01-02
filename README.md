@@ -6,4 +6,4 @@
 Len   Op   Data
 6        ,
 
-      connect,{username}
+      connect;huangp6
