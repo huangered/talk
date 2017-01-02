@@ -76,12 +76,12 @@ user_logout({Name, State=#state{users=Users}}) ->
 send_msg({Data, State=#state{users=Users}}) ->
     io:format("Send ~p~n", [Data]),
     case string:tokens(Data, ";") of
-        [From, To, Msg] -> seng(From, To, Msg, Users);
+        [From, To, Msg] -> send(From, To, Msg, Users);
         _ -> io:format("wrong~n")
     end.
 
 send(From, To, Msg, Users) ->
-    case dict:find(To, Users) ->
-        {ok, Socket} -> gen_server:send(Socket, Msg);
+    case dict:find(To, Users) of
+        {ok, Socket} -> gen_tcp:send(Socket, Msg);
         error -> donothing
     end.
