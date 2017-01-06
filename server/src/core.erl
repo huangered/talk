@@ -3,7 +3,7 @@
 %% @author huangered <huangered@hotmail.com>
 %% @copyright 2016 huangered, Inc.
 
--module(talk_server).
+-module(core).
 
 -behaviour(gen_server).
 
@@ -37,7 +37,7 @@ init([]) ->
 handle_call(_Req, _From, State) ->
     {reply, ignored, State}.
 
-handle_cast({Socket, Pack = #package{len=_Len, op=Op, data=Data}}, State) ->
+handle_cast({Socket, #package{len=_Len, op=Op, data=Data}}, State) ->
     case Op of
         connect -> 
             NewState = user_login({Socket, Data, State}),
@@ -62,25 +62,26 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internal functions
 
-user_login({Socket, Name, State=#state{users=Users}})->
+user_login({Socket, Name, #state{users=Users}})->
     io:format("User login ~p~n", [Name]),
-    NewState = #state{users=dict:store(Name, Socket, Users)}.
-
+    NewState = #state{users=dict:store(Name, Socket, Users)},
+    NewState.
     %%users:start_link(1, Name, Socket).
 
-user_logout({Name, State=#state{users=Users}}) ->
+user_logout({Name, #state{users=Users}}) ->
     io:format("User logout ~p~n", [Name]),
-    NewState = #state{users=dict:erase(Name, Users)}.
+    NewState = #state{users=dict:erase(Name, Users)},
+    NewState.
 
 
-send_msg({Data, State=#state{users=Users}}) ->
+send_msg({Data, #state{users=Users}}) ->
     io:format("Send ~p~n", [Data]),
     case string:tokens(Data, ";") of
         [From, To, Msg] -> send(From, To, Msg, Users);
         _ -> io:format("wrong~n")
     end.
 
-send(From, To, Msg, Users) ->
+send(_From, To, Msg, Users) ->
     case dict:find(To, Users) of
         {ok, Socket} -> gen_tcp:send(Socket, Msg);
         error -> donothing

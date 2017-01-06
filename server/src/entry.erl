@@ -66,8 +66,8 @@ accept(Listen) ->
   spawn(fun() -> loop(Sock) end),
   accept(Listen).
 
-close(Sock) ->
-  ok = gen_tcp:close(Sock).
+%close(Sock) ->
+%  ok = gen_tcp:close(Sock).
 
 loop(Sock) -> 
   {ok, {Address, Port}} = inet:peername(Sock),  
