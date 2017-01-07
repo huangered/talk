@@ -1,5 +1,7 @@
 # talk
-
+# env
+build system
+make >= 4.1
 
 # command
 
