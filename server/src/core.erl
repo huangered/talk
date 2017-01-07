@@ -79,8 +79,9 @@ send_msg({Data, State=#state{users=Users, msgPool = MsgPool}}) ->
     case string:tokens(Data, ";") of
         [From, To, Msg] -> 
             case send(From, To, Msg, Users) of
-                ok -> State;
+                ok -> io:format("Send success~n", []), State;
                 error ->
+                    io:format("Send fail~n", []),
                     NewMsgPool = updateMsgPool(MsgPool, To, #message{from=From, date=date(), time=time(), msg=Msg}),
                     #state{users=Users, msgPool=NewMsgPool}
             end;

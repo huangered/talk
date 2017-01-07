@@ -19,7 +19,7 @@
 
 -record(state, {
                 port=0,  %% server port,
-                listen
+                listen   %% listen socket
                }).
 
 %% api
