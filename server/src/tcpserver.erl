@@ -3,11 +3,11 @@
 %% @author huangered <huangered@hotmail.com>
 %% @copyright 2016 huangered, Inc.
 
--module(entry).
+-module(tcpserver).
 -behaviour(gen_server).
 
 %% api
--export([start_link/1, start/0]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -18,34 +18,29 @@
          code_change/3]).
 
 -record(state, {
-                port=0   %% server port
+                port=0,  %% server port,
+                listen
                }).
 
 %% api
 start_link(Port) ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, [Port], []).		 
 
-start() ->
-  gen_server:cast(?MODULE, start).
-
 %% callback
 
 init([Port]) ->
-  {ok, #state{port = Port}}.
+  io:format("Start tcp listen ~p~n", [Port]),
+  {ok, Listen} = gen_tcp:listen(Port, [binary, {packet, 0}, {active, false},{reuseaddr, true}]),
+  spawn(fun()->accept(Listen) end),
+  {ok, #state{port = Port, listen = Listen}}.
 
 handle_call(_Req, _From, State) ->
     {reply, ignored, State}.
 
-handle_cast(start, State = #state{port = Port}) ->
-    io:format("Port from state ~p~n", [Port]),
-    server(Port),
+handle_cast(start, State) ->
     {noreply, State}.
 
-handle_info(Msg, State = #state{port = Port}) ->
-    case Msg of
-      port -> io:format("Get port ~p~n", [ Port ]);
-      _  -> io:format("unknown~n")
-    end,
+handle_info(_Msg, State) ->
     {noreply, State}.
 
 terminate(_Reason, _State) ->
@@ -56,18 +51,12 @@ code_change(_OldVsn, State, _Extra) ->
 
 
 %% private api
-server(Port) ->
-  io:format("Start..."),
-  {ok, Listen} = gen_tcp:listen(Port, [binary, {packet, 0}, {active, false},{reuseaddr, true}]),
-  accept(Listen).
 
 accept(Listen) ->
   {ok, Sock} = gen_tcp:accept(Listen),
+  io:format("Accept ...~n"),
   spawn(fun() -> loop(Sock) end),
   accept(Listen).
-
-close(Sock) ->
-  ok = gen_tcp:close(Sock).
 
 loop(Sock) -> 
   {ok, {Address, Port}} = inet:peername(Sock),  

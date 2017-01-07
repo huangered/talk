@@ -17,7 +17,7 @@ handle(Sock) ->
         TrimData = string:substr(Data, 1, string:len(Data) - 2 ),
     		Pack = #package{len = Len, op = list_to_atom(Op), data = TrimData},
         io:format("Package ~p~n", [Pack]),
-    		talk_server:handle({Sock, Pack}),
+    		core:handle({Sock, Pack}),
         handle(Sock);
     	{error, closed} -> 
       		io:format("Close from ~n", []),
