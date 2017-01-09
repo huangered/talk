@@ -19,7 +19,7 @@
 
 -record(state, {
                 port=0,  %% server port,
-                listen
+                listen   %% listen socket
                }).
 
 %% api
@@ -29,7 +29,7 @@ start_link(Port) ->
 %% callback
 
 init([Port]) ->
-  io:format("Start tcp listen ~p~n", [Port]),
+  io:format("Start tcp listen on port ~p~n", [Port]),
   {ok, Listen} = gen_tcp:listen(Port, [binary, {packet, 0}, {active, false},{reuseaddr, true}]),
   spawn(fun()->accept(Listen) end),
   {ok, #state{port = Port, listen = Listen}}.
