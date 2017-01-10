@@ -43,10 +43,12 @@ init([]) ->
 handle_call({push, ToUser, Msg}, _From, #state{messages=Pool, count=Count}) ->
     case dict:find(ToUser, Pool) of
         {ok, Msgs} -> 
+            io:format("pool find user~n"),
             NewMsgs = Msgs++[Msg], 
             Npool = dict:store(ToUser, NewMsgs, Pool),
             {reply, ignored, #state{messages=Npool, count=Count}};
         error -> 
+            io:format("pool don't find user~n"),
             Npool = dict:store(ToUser, [Msg], Pool),
             C = Count+1,
             {reply, ignored, #state{messages=Npool, count=C}}
