@@ -8,7 +8,7 @@
 -behaviour(gen_server).
 
 -export([start_link/0]).
--export([push/2, pop/1]).
+-export([push/2, pop/1, detail/0]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -30,9 +30,15 @@ push(ToUser, Message) ->
 pop(User) ->
     gen_server:call(?MODULE, {pop, User}).
 
+detail() ->
+    gen_server:call(?MODULE, {detail}).
+
 %% callback
 init([]) ->
-    {ok, #state{messages = dict:new(), count = 0}}.
+    Messages = dict:new(), %% will load in the db
+    Count = 0,             %% will load in the db
+    io:format("Start message pool, count: ~p~n", [Count]),
+    {ok, #state{messages = Messages, count = Count}}.
 
 handle_call({push, ToUser, Msg}, _From, #state{messages=Pool, count=Count}) ->
     case dict:find(ToUser, Pool) of
@@ -42,15 +48,18 @@ handle_call({push, ToUser, Msg}, _From, #state{messages=Pool, count=Count}) ->
             {reply, ignored, #state{messages=Npool, count=Count}};
         error -> 
             Npool = dict:store(ToUser, [Msg], Pool),
-            {reply, ignored, #state{messages=Npool, count=Count}}
+            C = Count+1,
+            {reply, ignored, #state{messages=Npool, count=C}}
     end;
 
 handle_call({pop, User}, _From, State=#state{messages=Pool}) ->
     case dict:find(User, Pool) of
         {ok, Msgs} -> {reply, Msgs, State};
         error -> {reply, nofound, State}
-    end.
-    
+    end;
+
+handle_call({detail}, _From, State) ->
+    {reply, "detail", State}.    
 
 handle_cast(_Msg, State) ->
     {noreply, State}.

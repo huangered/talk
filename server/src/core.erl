@@ -21,7 +21,7 @@
          terminate/2,
          code_change/3]).
 
--record(state, {users, msgPool}).
+-record(state, {users}).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -32,7 +32,7 @@ handle({Socket, Pack}) ->
 %% callback
 
 init([]) ->
-    {ok, #state{users=dict:new(), msgPool=dict:new()}}.
+    {ok, #state{users=dict:new()}}.
 
 handle_call(_Req, _From, State) ->
     {reply, ignored, State}.
@@ -62,28 +62,28 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internal functions
 
-user_login({Socket, Name, #state{users=Users, msgPool = MsgPool}})->
+user_login({Socket, Name, #state{users=Users}})->
     io:format("User login ~p~n", [Name]),
-    NewState = #state{users=dict:store(Name, Socket, Users), msgPool = MsgPool},
+    NewState = #state{users=dict:store(Name, Socket, Users)},
     NewState.
     %%users:start_link(1, Name, Socket).
 
-user_logout({Name, #state{users=Users, msgPool = MsgPool}}) ->
+user_logout({Name, #state{users=Users}}) ->
     io:format("User logout ~p~n", [Name]),
-    NewState = #state{users=dict:erase(Name, Users), msgPool = MsgPool},
+    NewState = #state{users=dict:erase(Name, Users)},
     NewState.
 
 
-send_msg({Data, State=#state{users=Users, msgPool = MsgPool}}) ->
+send_msg({Data, State=#state{users=Users}}) ->
     io:format("Send ~p~n", [Data]),
     case string:tokens(Data, ";") of
         [From, To, Msg] -> 
             case send(From, To, Msg, Users) of
                 ok -> io:format("Send success~n", []), State;
                 error ->
-                    io:format("Send fail~n", []),
-                    NewMsgPool = updateMsgPool(MsgPool, To, #message{from=From, date=date(), time=time(), msg=Msg}),
-                    #state{users=Users, msgPool=NewMsgPool}
+                    io:format("Send fail, put in pool~n", []),
+                    msg_pool:push(To, Msg),
+                    #state{users=Users}
             end;
         _ -> io:format("Parse data wrong~n"), State
     end.
@@ -92,11 +92,4 @@ send(_From, To, Msg, Users) ->
     case dict:find(To, Users) of
         {ok, Socket} -> gen_tcp:send(Socket, Msg), ok;
         error -> error
-    end.
-%% MsgPool -> {user, []}
-%% Msg -> #message
-updateMsgPool(MsgPool, To, Msg) ->
-    case dict:find(To, MsgPool) of
-        {ok, UserPool} -> NewPool = UserPool++[Msg], dict:store(To, NewPool, MsgPool);
-        error -> dict:store(To, [Msg])
     end.

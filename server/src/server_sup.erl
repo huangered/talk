@@ -10,5 +10,6 @@ start_link() ->
 init([]) ->
 	TalkServer = {core,  {core, start_link, []},  permanent, brutal_kill, worker, [core]},
 	TcpServerSup = {tcpserver_sup, {tcpserver_sup, start_link, []}, permanent, brutal_kill, supervisor, [tcpserver_sup]},
-	Procs = [TalkServer, TcpServerSup],
+	MsgPoolServer = {message_pool, {message_pool, start_link, []}, permanent, brutal_kill, worker, [message_pool]},
+	Procs = [TalkServer, MsgPoolServer, TcpServerSup],
 	{ok, {{one_for_one, 1, 5}, Procs}}.
