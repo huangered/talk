@@ -2,7 +2,12 @@
 -behaviour(gen_server).
 
 %% API.
--export([start_link/0, query_user/2]).
+-export([start_link/0]).
+-export([query_user/2]).
+-export([add_user/2]).
+-export([find_user/2]).
+-export([add_msg/5]).
+-export([find_msg/2]).
 
 %% gen_server.
 -export([init/1]).
@@ -22,6 +27,15 @@ start_link() ->
 
 query_user(User, Passwd) ->
   gen_server:call(?MODULE, {query, User, Passwd}).
+
+add_user(_Name, _Passwd) ->
+  ok.
+find_user(_Name, _Passwd) ->
+  ok.
+add_msg(_From, _To, _Date, _Time, _Msg) ->
+  ok.
+find_msg(_From, _To) ->
+  ok.
 
 %% gen_server.
 
@@ -43,11 +57,3 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
 %% private api
-add_user(_Name) ->
-  ok.
-find_user(_Name, _Passwd) ->
-  ok.
-add_msg(_From, _To, _Date, _Time, _Msg) ->
-  ok.
-find_msg(_From, _To) ->
-  ok.

@@ -7,8 +7,9 @@
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
-start_child({Id, Name}) ->
-    supervisor:start_child(?MODULE, [{Id, Name}]).
+start_child({Client_socket}) ->
+    {ok, Pid} = supervisor:start_child(?MODULE, [{Client_socket}]),
+    {ok, Pid}.
 
 init([]) ->
     User = {talk_user, {talk_user, start_link, []},

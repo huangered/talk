@@ -61,4 +61,4 @@ accept(Listen) ->
 loop(Sock) -> 
   {ok, {Address, Port}} = inet:peername(Sock),  
   io:format("Remote socket: ~p:~p~n", [Address, Port]),
-  handler:handle(Sock).
+  talk_core:handle({Sock}).
