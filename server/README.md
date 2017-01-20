@@ -1,13 +1,16 @@
 # talk
+
 # env
 build system
 make >= 4.1
 
+# dep
+cowboy => web
+jiffy => json
+
 # command
 
-Len   Op   Data
-6        ,
-
-      connect;huangp6
-      disconnect;huangp6
-      send;from;to;msg
+Method | Data | Action
+<<"00">> | heartbeat
+<<"auth">> | {username:"",password:""}
+<<"send">> | {from:"",to:"",msg:""}
