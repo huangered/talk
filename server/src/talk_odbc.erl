@@ -42,3 +42,12 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
+%% private api
+add_user(_Name) ->
+  ok.
+find_user(_Name, _Passwd) ->
+  ok.
+add_msg(_From, _To, _Date, _Time, _Msg) ->
+  ok.
+find_msg(_From, _To) ->
+  ok.
