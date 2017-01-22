@@ -2,7 +2,13 @@
 -behaviour(gen_server).
 
 %% API.
--export([start_link/1]).
+-export([start_link/1, 
+         online/0, 
+         offline/0,
+         heartbeat/0,
+         list_friend/0, 
+         add_friend/1,
+         del_friend/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -13,31 +19,104 @@
 -export([code_change/3]).
 
 -record(state, {
+  id,
+  name,
+  online,
+  friends,
+  heartbeat_time,
+  client_socket,
+  client_socket_pid
 }).
 
 %% API.
 
 %%-spec start_link() -> {ok, pid()}.
-start_link({Id, Name}) ->
-	gen_server:start_link(?MODULE, [{Id, Name}], []).
+start_link({Socket}) ->
+  gen_server:start_link(?MODULE, [{Socket}], []).
+
+online() ->
+  gen_server:call(?MODULE, {online}).
+
+offline() ->
+  gen_server:call(?MODULE, {offline}).
+
+list_friend() ->
+  gen_server:call(?MODULE, {list_friend}).
+
+add_friend(Id) ->
+  gen_server:call(?MODULE, {add_friend, Id}).
+
+del_friend(Id) ->
+  gen_server:call(?MODULE, {del_friend, Id}).
+
+heartbeat() ->
+  gen_server:cast(?MODULE, {heartbeat}).
 
 %% gen_server.
 
-init([{Id, Name}]) ->
-    io:format("~p ~p~n", [Id, Name]),
-	{ok, #state{}}.
+init([{Socket}]) ->
+  io:format("Connect from ~p~n", [Socket]),
+  {ok, #state{client_socket=Socket}}.
 
-handle_call(_Request, _From, State) ->
-	{reply, ignored, State}.
+handle_call({online}, _From, State) ->
+  {reply, ignored, State#state{online=true}};
 
-handle_cast(_Msg, State) ->
-	{noreply, State}.
+handle_call({offline}, _From, State) ->
+  {reply, ignored, State#state{online=false}};
 
-handle_info(_Info, State) ->
-	{noreply, State}.
+handle_call({list_friend}, _From, State) ->
+  {reply, ignored, State};
+
+handle_call({add_friend}, _From, State) ->
+  {reply, ignored, State};
+
+handle_call({del_friend}, _From, State) ->
+  {reply, ignored, State}.
+
+handle_cast({heartbeat}, State) ->
+  {noreply, State#state{heartbeat_time={date(), time()}}}.
+
+%% read user info from socket
+handle_info({enter}, State=#state{client_socket=Socket}) ->
+  io:format("Enter from socket ~p~n", [Socket]),
+  io:format("Start to recv msg......~n", []),
+  Pid = self(),
+  Client_socket_pid = spawn(fun() -> recv({Pid, Socket}) end),
+  io:format("User Pid ~p~n", [self()]),
+  io:format("Client Socket Pid ~p~n", [Client_socket_pid]),
+  {noreply, State};
+             
+handle_info({heartbeat}, State) ->
+  NS = State#state{heartbeat_time={date(), time()}},
+  io:format("State ~p ~n",[NS]),
+  {noreply, NS};
+
+handle_info({disconnect}, State) ->
+  io:format("disconnect~n", []),
+  NS = State#state{online=false},
+  io:format("State ~p ~n",[NS]),
+  {noreply, NS};
+
+handle_info({auth, Id, Username}, State) ->
+  io:format("auth ~p~p~n", [Id, Username]),
+  NS = State#state{id=Id, name=Username},
+  {noreply, NS};
+
+handle_info({Method, Data}, State) ->
+  io:format("Event ~p ~p ~n",[Method, Data]),
+  {noreply, State}.
 
 terminate(_Reason, _State) ->
-	ok.
+  ok.
 
 code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+  {ok, State}.
+
+recv({Pid, Socket}) ->
+  case talk_handler:auth_handle({Socket}) of
+    {ok, Id, Name} ->
+      io:format("auth ok~n",[]),
+      Pid ! {auth, Id, Name}, 
+      talk_handler:handle({Pid, Socket});
+    {fail, _Reason} -> recv({Pid, Socket})
+  end.
