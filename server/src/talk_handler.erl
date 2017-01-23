@@ -27,6 +27,9 @@ auth_handle({Sock}) ->
   case talk_packet:recv(Sock) of
     {ok, {<<"auth">>, Data}} ->
       talk_auth:auth(Data);
-    {ok, _} -> io:format("none~n", []);
-    {error, Reason} -> {failed, Reason}
+    {ok, _} ->
+      io:format("none~n", []),
+      auth_handle({Sock});
+    {error, Reason} ->
+      {failed, Reason}
   end.
