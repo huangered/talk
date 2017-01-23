@@ -15,5 +15,4 @@ make >= 4.1
 | <<"00">> | | <<"ok">> | heartbeat | 
 | <<"auth">> | {"username":"", "password":""} | <<"ok">> or <<"fail">> | auth |
 | <<"disconnect">> | | <<"ok">> | disconnect |
-| <<"send">> | {"from":"", "to":"", "msg":""} | <<"ok">> | send |
-| <<"sendgroup">> | {"from","", "to":"", "msg":""} | <<"ok">> | send to group |
+| <<"send">> | {"from":"", "to":"", "msg":""} | <<"ok">> | send msg to group member |
