@@ -25,7 +25,8 @@
 -record(state, {users, talk_users, msgPool}).
 
 start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+  io:format("start core~n",[]),
+  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 handle({Client_socket}) ->
     gen_server:cast(?MODULE, {Client_socket}).
