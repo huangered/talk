@@ -26,7 +26,7 @@ start_link() ->
   io:format("talk room start link~n", []),
   gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-create_room(UserIdList) ->
+create_room(UserIdList) when is_list(UserIdList) ->
   gen_server:call(?MODULE, {create_room, UserIdList}).
 
 add_user_to_room(User_id, Room_id) ->
