@@ -102,6 +102,23 @@ handle_info({auth, Id, Username}, State) ->
   NS = State#state{id=Id, name=Username},
   {noreply, NS};
 
+%% create talk room
+handle_info({create_room, UserIdList}, State) ->
+  Id = talk_room:create_room(UserIdList),
+  self() ! {sendback, talk_packet:pack(<<"create_room_resp">>, integer_to_binary(Id))},
+  {noreply, State};
+
+%% add user to talk room
+handle_info({add_user_to_room, User_id, Room_id}, State) ->
+  Result = talk_room:add_user_to_room(User_id, Room_id),
+  self() ! {sendback, talk_packet:pack(<<"add_user_to_room_resp">>, atom_to_binary(Result, utf8))},
+  {noreply, State};
+
+%% send the message back to client
+handle_info({sendback, Msg}, State=#state{client_socket=Socket}) ->
+  talk_packet:send(Socket, Msg),
+  {noreply, State};
+
 handle_info({Method, Data}, State) ->
   io:format("Event ~p ~p ~n",[Method, Data]),
   {noreply, State}.

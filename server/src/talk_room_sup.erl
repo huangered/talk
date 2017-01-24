@@ -8,8 +8,9 @@ start_link() ->
   supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
+  io:format("start room~n",[]),
   Room = {talk_room, {talk_room, start_link, []},
-          temporary, brutal_kill, worker, [talk_room]},
+          permanent, brutal_kill, worker, [talk_room]},
   Children = [Room],
-  RestartStrategy = {simple_one_for_one, 0, 1},
+  RestartStrategy = {one_for_one, 1, 5},
   {ok, {RestartStrategy, Children}}.
