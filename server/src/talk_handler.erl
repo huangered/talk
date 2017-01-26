@@ -28,7 +28,7 @@ auth_handle({Sock}) ->
     {ok, {<<"auth">>, Data}} ->
       talk_auth:auth(Data);
     {ok, _} ->
-      io:format("none~n", []),
+      io:format("Auth_handle none operation~n", []),
       auth_handle({Sock});
     {error, Reason} ->
       {failed, Reason}

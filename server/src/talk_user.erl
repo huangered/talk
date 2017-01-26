@@ -89,6 +89,7 @@ handle_info({enter}, State=#state{client_socket=Socket}) ->
 handle_info({heartbeat}, State) ->
   NS = State#state{heartbeat_time={date(), time()}},
   io:format("State ~p ~n",[NS]),
+  self() ! {sendback, talk_packet:pack(<<"heartbeat_resp">>, <<"ok">>)},
   {noreply, NS};
 
 handle_info({disconnect}, State) ->
@@ -98,7 +99,7 @@ handle_info({disconnect}, State) ->
   {noreply, NS};
 
 handle_info({auth, Id, Username}, State) ->
-  io:format("auth ~p~p~n", [Id, Username]),
+  io:format("auth success~p~p~n", [Id, Username]),
   NS = State#state{id=Id, name=Username},
   {noreply, NS};
 
