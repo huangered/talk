@@ -84,7 +84,7 @@ handle_info({enter}, State=#state{client_socket=Socket}) ->
   Client_socket_pid = spawn(fun() -> recv({Pid, Socket}) end),
   io:format("User Pid ~p~n", [self()]),
   io:format("Client Socket Pid ~p~n", [Client_socket_pid]),
-  {noreply, State};
+  {noreply, State#state{client_socket_pid=Client_socket_pid}};
              
 handle_info({heartbeat}, State) ->
   NS = State#state{heartbeat_time={date(), time()}},
@@ -109,10 +109,22 @@ handle_info({create_room, UserIdList}, State) ->
   self() ! {sendback, talk_packet:pack(<<"create_room_resp">>, integer_to_binary(Id))},
   {noreply, State};
 
+%% left talk room
+handle_info({leave_room, _Room_id}, State) ->
+  %% find room by id
+  self() ! {sendback, talk_packet:pack(<<"leave_room_resp">>, <<"ok">>)},
+  {noreply, State};
+
 %% add user to talk room
 handle_info({add_user_to_room, User_id, Room_id}, State) ->
   Result = talk_room:add_user_to_room(User_id, Room_id),
   self() ! {sendback, talk_packet:pack(<<"add_user_to_room_resp">>, atom_to_binary(Result, utf8))},
+  {noreply, State};
+
+%% del user from talk room
+handle_info({del_user_from_room, User_id, Room_id}, State) ->
+  Result = talk_room:del_user_from_room(User_id, Room_id),
+  self() ! {sendback, talk_packet:pack(<<"del_user_from_room_resp">>, atom_to_binary(Result, utf8))},
   {noreply, State};
 
 %% send the message back to client

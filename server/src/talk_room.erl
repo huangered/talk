@@ -7,6 +7,7 @@
 -export([start_link/0]).
 -export([create_room/1]).
 -export([add_user_to_room/2]).
+-export([del_user_from_room/2]).
 
 %% gen_server.
 -export([init/1]).
@@ -32,6 +33,9 @@ create_room(UserIdList) when is_list(UserIdList) ->
 add_user_to_room(User_id, Room_id) ->
   gen_server:call(?MODULE, {add_user, User_id, Room_id}).
 
+del_user_from_room(User_id, Room_id) ->
+  gen_server:call(?MODULE, {del_user, User_id, Room_id}).
+
 %% gen_server.
 
 init([]) ->
@@ -44,6 +48,10 @@ handle_call({create_room, UserIdList}, _From, State) ->
 
 handle_call({add_user, User_id, Room_id}, _From, State) ->
   io:format("add user ~p to room ~p~n", [User_id, Room_id]),
+  {reply, ok, State};
+
+handle_call({del_user, User_id, Room_id}, _From, State) ->
+  io:format("del user ~p from room ~p~n", [User_id, Room_id]),
   {reply, ok, State};
 
 handle_call(_Request, _From, State) ->
