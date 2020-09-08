@@ -1,0 +1,15 @@
+{application, server, [
+    {description, "server"},
+    {vsn, "0.1.1"},
+    {modules, []},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        cowboy,
+        jiffy,
+        epgsql
+    ]},
+    {mod, {server_app, []}},
+    {env, []}
+]}.
